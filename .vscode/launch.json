@@ -2,6 +2,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "java",
+      "name": "AmdahlLaw",
+      "request": "launch",
+      "mainClass": "AmdahlLaw",
+      "projectName": "COA_b1631492"
+    },
+    {
       "name": "C/C++ Runner: Debug Session",
       "type": "cppdbg",
       "request": "launch",

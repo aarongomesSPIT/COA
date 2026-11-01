@@ -1,6 +1,6 @@
 public class AmdahlLaw {
     // Speedup = 1 / (serial part + parallel part / processors).
-    private static double speedup(double parallelFraction, int processors) {
+    public static double speedup(double parallelFraction, int processors) {
         return 1.0 / ((1.0 - parallelFraction) + parallelFraction / processors);
     }
 
