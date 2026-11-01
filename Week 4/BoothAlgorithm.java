@@ -17,29 +17,24 @@ public class BoothAlgorithm {
     }
 
     public static void boothAlgo(int m, int q) {
-        int m1 = -m; // Two's complement of m
-        int a = 0; // Accumulator
-        int q1 = 0; // Previous bit of Q
-        int n = Integer.SIZE; // Number of bits
+        int a = 0; // 32-bit accumulator; overflow is the required two's-complement behavior.
+        int qMinusOne = 0; // Q(-1), the bit adjacent to Q0.
+        int multiplicand = m;
 
-        for (int i = 0; i < n; i++) {
-            if ((q & 1) == 1 && q1 == 0) {
-                a += m1; // A = A - M
-            } else if ((q & 1) == 0 && q1 == 1) {
-                a += m; // A = A + M
+        for (int i = 0; i < Integer.SIZE; i++) {
+            int q0 = q & 1;
+            if (q0 == 1 && qMinusOne == 0) {
+                a -= multiplicand; // 10: A = A - M.
+            } else if (q0 == 0 && qMinusOne == 1) {
+                a += multiplicand; // 01: A = A + M.
             }
 
-            // Arithmetic right shift
-            q1 = q & 1;
-            q >>= 1;
-            a >>= 1;
-
-            // If the sign bit of A is set, set the sign bit of Q
-            if ((a & (1 << (n - 1))) != 0) {
-                q |= (1 << (n - 1));
-            }
+            qMinusOne = q0;
+            q = (q >>> 1) | ((int) (a & 1) << 31); // Shift [A,Q,Q(-1)] right.
+            a >>= 1; // Arithmetic shift preserves A's sign.
         }
 
-        System.out.println("Product: " + ((a << n) | q));
+        long product = ((long) a << Integer.SIZE) | (q & 0xFFFFFFFFL);
+        System.out.println("Product: " + product);
     }
 }
