@@ -4,35 +4,37 @@ public class NonRestoringDivision {
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
         System.out.print("Enter Dividend (Q): ");
-        long dividend = in.nextLong();
+        int Q = in.nextInt(); // Dividend.
         System.out.print("Enter Divisor (M): ");
-        long divisor = in.nextLong();
+        int M = in.nextInt(); // Divisor.
         in.close();
 
-        // Use long so all unsigned 32-bit values remain positive.
-        if (divisor == 0 || dividend < 0 || divisor < 0
-                || dividend > 0xFFFFFFFFL || divisor > 0xFFFFFFFFL) {
-            throw new IllegalArgumentException("Use non-negative 32-bit values and a non-zero divisor.");
-        }
+        int A = 0; // Partial remainder.
+        int count = 32; // Number of bits.
+        while (count-- > 0) {
+            // Shift the next dividend bit into A.
+            A = (A << 1) | ((Q >>> 31) & 1);
+            Q <<= 1;
 
-        long remainder = 0; // Partial remainder A.
-        long quotient = 0; // Quotient Q.
-        for (int bit = 31; bit >= 0; bit--) {
-            remainder = (remainder << 1) | ((dividend >>> bit) & 1);
-            // Non-restoring step: subtract or add according to A's sign.
-            if (remainder >= 0) {
-                remainder -= divisor;
+            // Subtract or add the divisor based on the sign of A.
+            if (A >= 0) {
+                A -= M; // A = A - M.
             } else {
-                remainder += divisor;
+                A += M; // A = A + M.
             }
 
-            if (remainder >= 0) quotient |= 1L << bit;
+            // A >= 0 means Q0 is 1; otherwise Q0 is 0.
+            if (A >= 0) {
+                Q |= 1;
+            } else {
+                Q &= ~1;
+            }
         }
 
-        if (remainder < 0) {
-            remainder += divisor;
+        if (A < 0) {
+            A += M; // Final correction if A is negative.
         }
-        System.out.println("Quotient (Q): " + quotient);
-        System.out.println("Remainder (A): " + remainder);
+        System.out.println("Quotient (Q): " + Q);
+        System.out.println("Remainder (A): " + A);
     }
 }
