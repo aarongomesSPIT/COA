@@ -1,5 +1,6 @@
 public class Multi2simOutput {
     public static void main(String[] args) {
+        // Simulation data from the notebook.
         int[] cores = {1, 2, 4, 8};
         long[] cycles = {822085, 822085, 822085, 822085};
         long singleCoreCycles = cycles[0];

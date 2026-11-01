@@ -1,6 +1,7 @@
 import java.util.Arrays;
 
 public class PageReplacement {
+    // Reference string and number of available page frames.
     private static final int[] REFERENCES = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3,
             0, 3, 2, 1, 2, 0, 1, 7, 0, 1};
     private static final int FRAME_COUNT = 3;
@@ -9,7 +10,7 @@ public class PageReplacement {
         int[] frames = {-1, -1, -1};
         int pointer = 0, hits = 0, faults = 0;
         for (int i = 0; i < REFERENCES.length; i++) {
-            boolean hit = contains(frames, REFERENCES[i]);
+            boolean hit = contains(frames, REFERENCES[i]); // Page already loaded?
             if (hit) {
                 hits++;
             } else {
@@ -34,6 +35,7 @@ public class PageReplacement {
                 lastUsed[index] = i;
                 hits++;
             } else {
+                // Replace the page whose last-use position is smallest.
                 index = indexOf(lastUsed, minimum(lastUsed));
                 frames[index] = page;
                 lastUsed[index] = i;

@@ -1,11 +1,12 @@
 public class AmdahlLaw {
+    // Speedup = 1 / (serial part + parallel part / processors).
     private static double speedup(double parallelFraction, int processors) {
         return 1.0 / ((1.0 - parallelFraction) + parallelFraction / processors);
     }
 
     public static void main(String[] args) {
         double[] parallelFractions = {0.5, 0.75, 0.9, 0.95, 0.99};
-        int[] processors = {1, 4, 9, 16};
+        int[] processors = {1, 4, 9, 16}; // Same values used by the notebook.
 
         System.out.println("Amdahl's Law (plotting omitted)");
         for (double fraction : parallelFractions) {

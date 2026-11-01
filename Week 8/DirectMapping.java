@@ -1,6 +1,7 @@
 import java.util.Scanner;
 
 public class DirectMapping {
+    // Print a number using exactly width bits.
     private static String binary(int value, int width) {
         if (width == 0) {
             return "-";
@@ -10,6 +11,7 @@ public class DirectMapping {
     }
 
     private static int log2(int value) {
+        // Direct mapping is simplest when counts are powers of two.
         if (value <= 0 || (value & (value - 1)) != 0) {
             throw new IllegalArgumentException("Memory and cache block counts must be powers of two.");
         }
@@ -17,22 +19,22 @@ public class DirectMapping {
     }
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+        Scanner in = new Scanner(System.in);
         System.out.print("Enter the size of main memory in bytes: ");
-        int mainMemory = scanner.nextInt();
+        int mainMemory = in.nextInt();
         System.out.print("Enter the size of cache memory in bytes: ");
-        int cacheMemory = scanner.nextInt();
+        int cacheMemory = in.nextInt();
         System.out.print("Enter the block size in bytes: ");
-        int blockSize = scanner.nextInt();
-        scanner.close();
+        int blockSize = in.nextInt();
+        in.close();
 
         if (mainMemory <= 0 || cacheMemory <= 0 || blockSize <= 0
                 || mainMemory % blockSize != 0 || cacheMemory % blockSize != 0) {
             throw new IllegalArgumentException("Sizes must be positive multiples of the block size.");
         }
 
-        int blocks = mainMemory / blockSize;
-        int lines = cacheMemory / blockSize;
+        int blocks = mainMemory / blockSize; // Main-memory block count.
+        int lines = cacheMemory / blockSize; // Cache-line count.
         int biBits = log2(blocks);
         int ciBits = log2(lines);
         int tagBits = biBits - ciBits;
@@ -47,8 +49,8 @@ public class DirectMapping {
         System.out.println("| Block Index (BI) | Cache Index (CI) | Tag Index (TI) |");
         System.out.println("|------------------|------------------|----------------|");
         for (int block = 0; block < blocks; block++) {
-            int cacheLine = block % lines;
-            int tag = block / lines;
+            int cacheLine = block % lines; // BI modulo number of lines.
+            int tag = block / lines; // Remaining upper bits.
             System.out.printf("| %-16s | %-16s | %-14s |%n",
                     binary(block, biBits), binary(cacheLine, ciBits), binary(tag, tagBits));
         }
