@@ -1,0 +1,24 @@
+.MODEL SMALL
+.STACK 100H
+
+.CODE
+MAIN PROC
+
+    MOV AX, 1000H
+    MOV DS, AX
+    MOV AX, 2000H
+    MOV ES, AX
+    
+    MOV SI, 0000H
+    MOV DI, 0000H
+    
+    MOV CX, 10
+    
+    CLD
+    REP MOVSW
+    
+    MOV AH, 4CH
+    INT 21H
+    
+MAIN ENDP
+END MAIN

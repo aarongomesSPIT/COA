@@ -3,6 +3,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "PageReplacement",
+      "request": "launch",
+      "mainClass": "PageReplacement",
+      "projectName": "COA_b1631492"
+    },
+    {
+      "type": "java",
       "name": "AmdahlLaw",
       "request": "launch",
       "mainClass": "AmdahlLaw",

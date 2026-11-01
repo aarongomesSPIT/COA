@@ -1,0 +1,23 @@
+.MODEL SMALL
+.STACK 100H
+
+.DATA
+    NUM1 DW 1111H
+    NUM2 DW 2222H
+    SUM DW ?
+    
+.CODE
+
+MAIN PROC
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    MOV AX, NUM1
+    ADD AX, NUM2
+    MOV SUM, AX
+    
+    MOV AH, 4CH
+    INT 21H
+
+MAIN ENDP
+END MAIN
