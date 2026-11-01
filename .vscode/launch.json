@@ -3,6 +3,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "DirectMapping",
+      "request": "launch",
+      "mainClass": "DirectMapping",
+      "projectName": "COA_b1631492"
+    },
+    {
+      "type": "java",
       "name": "PageReplacement",
       "request": "launch",
       "mainClass": "PageReplacement",

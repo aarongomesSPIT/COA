@@ -37,7 +37,7 @@ END MAIN
 
 ---
 
-### Program 1.1: Display "Hello World" ([`HELLO.ASM`](file:///home/mint/Documents/COA/Week%201/HELLO.ASM))
+### Program 1.1: Display "Hello World" ([`HELLO.ASM`](Week%201/HELLO.ASM))
 
 ```assembly
 .MODEL SMALL
@@ -67,7 +67,7 @@ END MAIN
 
 ---
 
-### Program 1.2: Add Two Numbers ([`ADD2NUMS.ASM`](file:///home/mint/Documents/COA/Week%201/ADD2NUMS.ASM))
+### Program 1.2: Add Two Numbers ([`ADD2NUMS.ASM`](Week%201/ADD2NUMS.ASM))
 
 #### 16-Bit Addition (As per syllabus):
 ```assembly
@@ -106,7 +106,7 @@ END MAIN
 
 ---
 
-### Program 2.1: Transfer 10 Words within the Same Segment (`1000:0000` to `1000:2000`) ([`COPYINSEG.ASM`](file:///home/mint/Documents/COA/Week%202/COPYINSEG.ASM))
+### Program 2.1: Transfer 10 Words within the Same Segment (`1000:0000` to `1000:2000`) ([`COPYINSEG.ASM`](Week%202/COPYINSEG.ASM))
 
 ```assembly
 .MODEL SMALL
@@ -132,7 +132,7 @@ END MAIN
 
 ---
 
-### Program 2.2: Transfer 10 Words Across Segments (`1000:0000` to `2000:0000`) ([`COPYXSEG.ASM`](file:///home/mint/Documents/COA/Week%202/COPYXSEG.ASM))
+### Program 2.2: Transfer 10 Words Across Segments (`1000:0000` to `2000:0000`) ([`COPYXSEG.ASM`](Week%202/COPYXSEG.ASM))
 
 ```assembly
 .MODEL SMALL
@@ -162,7 +162,7 @@ END MAIN
 
 # Experiment 3: String Operations
 
-### Program 3.1: Length of a String ([`STRLEN.ASM`](file:///home/mint/Documents/COA/Week%203/STRLEN.ASM))
+### Program 3.1: Length of a String ([`STRLEN.ASM`](Week%203/STRLEN.ASM))
 
 - **Concept**: Use `LODSB` (loads byte at `DS:SI` into `AL` and increments `SI`). Loop until character matches `'$'`.
 ```assembly
@@ -197,7 +197,7 @@ END MAIN
 
 ---
 
-### Program 3.2: Check if Two Strings are Equal ([`CMPSTR.ASM`](file:///home/mint/Documents/COA/Week%203/CMPSTR.ASM))
+### Program 3.2: Check if Two Strings are Equal ([`CMPSTR.ASM`](Week%203/CMPSTR.ASM))
 
 - **Concept**: Use `CMPSB` (compares byte at `DS:SI` with byte at `ES:DI`) combined with prefix `REPE` (Repeat while Equal).
 ```assembly
@@ -242,7 +242,7 @@ END MAIN
 
 ---
 
-### Program 3.3: Check if a String is a Palindrome ([`PALIN.ASM`](file:///home/mint/Documents/COA/Week%203/PALIN.ASM))
+### Program 3.3: Check if a String is a Palindrome ([`PALIN.ASM`](Week%203/PALIN.ASM))
 
 - **Concept**: Two pointers — `SI` starts at character 0, `DI` starts at the last character (`LEN - 1`). Compare `[SI]` and `[DI]`, then increment `SI` and decrement `DI`. Loop `LEN / 2` times.
 ```assembly
@@ -290,7 +290,7 @@ END MAIN
 
 ---
 
-### Program 3.4: Reverse a String ([`REVERSE.ASM`](file:///home/mint/Documents/COA/Week%203/REVERSE.ASM))
+### Program 3.4: Reverse a String ([`REVERSE.ASM`](Week%203/REVERSE.ASM))
 
 - **Concept**: Read from the end of `STR1` (`SI = STR1 + LEN - 1`) and write sequentially to the start of `REV` (`DI = REV`).
 ```assembly
@@ -351,7 +351,7 @@ Booth's Algorithm multiplies signed binary integers in two's complement form.
 
 ---
 
-### Code ([`boothAlgo.c`](file:///home/mint/Documents/COA/Week%204/boothAlgo.c) / [`BoothAlgorithm.java`](file:///home/mint/Documents/COA/Week%204/BoothAlgorithm.java))
+### Code ([`boothAlgo.c`](Week%204/boothAlgo.c) / [`BoothAlgorithm.java`](Week%204/BoothAlgorithm.java))
 
 ```c
 #include <stdio.h>
@@ -397,7 +397,7 @@ int main() {
 
 Division calculates: $\text{Dividend } (Q) \div \text{Divisor } (M) \rightarrow \text{Quotient } (Q), \text{Remainder } (A)$.
 
-### 5.1: Restoring Division Algorithm ([`restoring.c`](file:///home/mint/Documents/COA/Week%205/restoring.c))
+### 5.1: Restoring Division Algorithm ([`restoring.c`](Week%205/restoring.c))
 
 #### Logic:
 1. Initialize $A = 0$, $\text{Count} = n$.
@@ -445,7 +445,7 @@ int main() {
 
 ---
 
-### 5.2: Non-Restoring Division Algorithm ([`nonrestoring.c`](file:///home/mint/Documents/COA/Week%205/nonrestoring.c))
+### 5.2: Non-Restoring Division Algorithm ([`nonrestoring.c`](Week%205/nonrestoring.c))
 
 #### Logic:
 Avoids the restorative addition step in the loop:
@@ -518,7 +518,7 @@ Where:
 - $(1 - P)$ = Serial fraction.
 - $N$ = Number of processors.
 
-### Code ([`AmdahlLaw.java`](file:///home/mint/Documents/COA/Week%206/AmdahlLaw.java))
+### Code ([`AmdahlLaw.java`](Week%206/AmdahlLaw.java))
 ```java
 public class AmdahlLaw {
     public static double speedup(double P, int N) {
@@ -555,7 +555,7 @@ Given reference string: `7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0
 ### 2. LRU (Least Recently Used)
 - Replaces the page that has not been referenced for the longest period of time (tracked by recording access cycle/timestamp `lastUsed[frame] = i`).
 
-### Code ([`PageReplacement.java`](file:///home/mint/Documents/COA/Week%207/PageReplacement.java))
+### Code ([`PageReplacement.java`](Week%207/PageReplacement.java))
 ```java
 import java.util.Arrays;
 
@@ -636,7 +636,7 @@ For every Main Memory Block Index ($BI$):
 - $\text{Cache Index } (CI) = BI \pmod{\text{No. of Lines}}$
 - $\text{Tag Index } (TI) = \lfloor BI / \text{No. of Lines} \rfloor$
 
-### Code ([`directMapping.c`](file:///home/mint/Documents/COA/Week%208/directMapping.c))
+### Code ([`directMapping.c`](Week%208/directMapping.c))
 ```c
 #include <stdio.h>
 #include <math.h>
@@ -701,7 +701,7 @@ A standard 5-stage RISC processor pipeline:
 - $I_2$: `SUB R4, R1, R5` (needs value of $R_1$ in stage EX).
 - Result: $I_2$ must **stall for 2 cycles** in EX until $I_1$ finishes WB.
 
-### Code ([`pipelining.java`](file:///home/mint/Documents/COA/Week%2010/pipelining.java))
+### Code ([`pipelining.java`](Week%2010/pipelining.java))
 ```java
 public class pipelining {
     public static void main(String[] args) {
