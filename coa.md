@@ -664,10 +664,6 @@ public class DirectMapping {
     }
 
     static int log2(int value) {
-        // Direct mapping is simplest when counts are powers of two.
-        if (value <= 0 || (value & (value - 1)) != 0) {
-            throw new IllegalArgumentException("Memory and cache block counts must be powers of two.");
-        }
         return Integer.numberOfTrailingZeros(value);
     }
 
@@ -686,9 +682,6 @@ public class DirectMapping {
         int biBits = log2(blocks);
         int ciBits = log2(lines);
         int tagBits = biBits - ciBits;
-        if (tagBits < 0) {
-            throw new IllegalArgumentException("Cache cannot contain more lines than main memory blocks.");
-        }
 
         System.out.println("\nNo. of blocks in main memory: " + blocks);
         System.out.println("No. of Lines in cache memory: " + lines);
