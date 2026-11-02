@@ -11,11 +11,7 @@ public class DirectMapping {
     }
 
     private static int log2(int value) {
-        // Direct mapping is simplest when counts are powers of two.
-        if (value <= 0 || (value & (value - 1)) != 0) {
-            throw new IllegalArgumentException("Memory and cache block counts must be powers of two.");
-        }
-        return Integer.numberOfTrailingZeros(value);
+        return (int)(Math.log(value) / Math.log(2));
     }
 
     public static void main(String[] args) {
