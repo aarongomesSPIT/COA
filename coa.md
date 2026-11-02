@@ -132,6 +132,8 @@ END MAIN
 
 ---
 
+`CLD` clears the Direction Flag, so string instructions move forward: `SI` and `DI` increase after each word. `REP MOVSW` repeats `MOVSW` until `CX` becomes zero. Each repetition copies one 16-bit word from `DS:SI` to `ES:DI`, so `MOV CX, 10` copies 10 words.
+
 ### Program 2.2: Transfer 10 Words Across Segments (`1000:0000` to `2000:0000`) ([`COPYXSEG.ASM`](Week%202/COPYXSEG.ASM))
 
 ```assembly
@@ -194,6 +196,8 @@ DONE:
 MAIN ENDP
 END MAIN
 ```
+
+`XOR CX, CX` sets `CX` to zero by XORing the register with itself. This is a common and efficient way to initialize the length counter before the loop. Each non-`$` character increases `CX` by one, and the final value is stored as the string length.
 
 ---
 
@@ -351,43 +355,41 @@ Booth's Algorithm multiplies signed binary integers in two's complement form.
 
 ---
 
-### Code ([`boothAlgo.c`](Week%204/boothAlgo.c) / [`BoothAlgorithm.java`](Week%204/BoothAlgorithm.java))
+### Code ([`BoothAlgorithm.java`](Week%204/BoothAlgorithm.java))
 
-```c
-#include <stdio.h>
-
-int main() {
-    int M, Q;
-    int A = 0, Q_1 = 0;
-    int count = 32;
-
-    printf("Enter Multiplicand (M): ");
-    scanf("%d", &M);
-    printf("Enter Multiplier (Q): ");
-    scanf("%d", &Q);
-
-    while (count > 0) {
-        int Q_0 = Q & 1; // Extract least significant bit of Q
-
-        // 1. Inspect (Q_0, Q_1)
-        if (Q_0 == 1 && Q_1 == 0) {
-            A = A - M;
-        } else if (Q_0 == 0 && Q_1 == 1) {
-            A = A + M;
-        }
-
-        // 2. Arithmetic Right Shift [A, Q, Q_1]
-        Q_1 = Q & 1;                    // Current LSB of Q becomes Q_1
-        Q = (Q >> 1) & ~(1 << 31);      // Logical shift Q right, clear MSB
-        Q |= (A & 1) << 31;             // Transfer LSB of A into MSB of Q
-        A = A >> 1;                     // Arithmetic shift of A (preserves sign)
-
-        count--;
+```java
+import java.util.Scanner;
+public class BoothAlgorithm {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        System.out.print("Enter the multiplicand: ");
+        int M = in.nextInt(); // M: multiplicand.
+        System.out.print("Enter the multiplier: ");
+        int Q = in.nextInt(); // Q: multiplier.
+        booth(M, Q);
+        in.close();
     }
 
-    // For 32-bit registers, Q holds the lower 32 bits of the product
-    printf("Decimal Product: %d\n", Q);
-    return 0;
+    // Q0 and Q-1 decide whether to add or subtract M.
+    static void booth(int M, int Q) {
+        int A = 0; // Accumulator A.
+        int Q_1 = 0; // Previous bit of Q, initially 0.
+        int count = 32; // Number of bits.
+        while (count-- > 0) {
+            int Q0 = Q & 1; // Read the current least-significant bit of Q.
+            if (Q0 == 1 && Q_1 == 0) {
+                A -= M; // Pair 10: A = A - M.
+            } else if (Q0 == 0 && Q_1 == 1) {
+                A += M; // Pair 01: A = A + M.
+            }
+
+            Q_1 = Q0; // Save Q0 as the next Q-1.
+            Q = (Q >>> 1) | ((A & 1) << 31); // Shift the combined A-Q register.
+            A >>= 1; // Arithmetic shift keeps the sign of A.
+        }
+
+        System.out.println("Product: " + Q); // Q contains the 32-bit result.
+    }
 }
 ```
 
@@ -397,7 +399,7 @@ int main() {
 
 Division calculates: $\text{Dividend } (Q) \div \text{Divisor } (M) \rightarrow \text{Quotient } (Q), \text{Remainder } (A)$.
 
-### 5.1: Restoring Division Algorithm ([`restoring.c`](Week%205/restoring.c))
+### 5.1: Restoring Division Algorithm ([`RestoringDivision.java`](Week%205/RestoringDivision.java))
 
 #### Logic:
 1. Initialize $A = 0$, $\text{Count} = n$.
@@ -408,44 +410,41 @@ Division calculates: $\text{Dividend } (Q) \div \text{Divisor } (M) \rightarrow 
    - If $A \ge 0$: Set $Q_0 = 1$.
 5. Decrement count until $0$.
 
-```c
-#include <stdio.h>
+```java
+import java.util.Scanner;
 
-int main() {
-    int N = 32;
-    unsigned A = 0, M, Q;
+public class RestoringDivision {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        System.out.print("Enter Dividend (Q): ");
+        int Q = in.nextInt(); // Dividend.
+        System.out.print("Enter Divisor (M): ");
+        int M = in.nextInt(); // Divisor.
+        in.close();
 
-    printf("Enter Dividend (Q): ");
-    scanf("%u", &Q);
-    printf("Enter Divisor (M): ");
-    scanf("%u", &M);
-
-    while (N > 0) {
-        // Shift left combined [A, Q]:
-        // A receives the 31st bit (MSB) of Q, Q shifts left by 1
-        A = (A << 1) | ((Q >> 31) & 1U);
-        Q = Q << 1;
-
-        A = A - M; // Trial subtraction
-
-        if ((A >> 31) & 1U) { // If A is negative
-            Q &= ~1U;         // Set Q's LSB (Q0) to 0
-            A = A + M;        // RESTORE A
-        } else {
-            Q |= 1U;          // Set Q's LSB (Q0) to 1
+        int A = 0; // Partial remainder.
+        int count = 32; // Number of bits.
+        while (count-- > 0) {
+            // Shift the next dividend bit into the partial remainder.
+            A = (A << 1) | ((Q >>> 31) & 1);
+            Q <<= 1;
+            A -= M;
+            if (A < 0) {
+                A += M; // Restore A after an unsuccessful subtraction.
+            } else {
+                Q |= 1; // Successful subtraction sets Q0 to 1.
+            }
         }
-        N--;
-    }
 
-    printf("Quotient (Q): %u\n", Q);
-    printf("Remainder (A): %u\n", A);
-    return 0;
+        System.out.println("Quotient (Q): " + Q);
+        System.out.println("Remainder (A): " + A);
+    }
 }
 ```
 
 ---
 
-### 5.2: Non-Restoring Division Algorithm ([`nonrestoring.c`](Week%205/nonrestoring.c))
+### 5.2: Non-Restoring Division Algorithm ([`NonRestoringDivision.java`](Week%205/NonRestoringDivision.java))
 
 #### Logic:
 Avoids the restorative addition step in the loop:
@@ -458,49 +457,46 @@ Avoids the restorative addition step in the loop:
    - If $A < 0 \implies Q_0 = 0$.
 4. **Final step (after loop ends)**: If $A < 0$, do a one-time correction: $A = A + M$.
 
-```c
-#include <stdio.h>
+```java
+import java.util.Scanner;
 
-int main() {
-    int N = 32;
-    unsigned A = 0, M, Q;
+public class NonRestoringDivision {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        System.out.print("Enter Dividend (Q): ");
+        int Q = in.nextInt(); // Dividend.
+        System.out.print("Enter Divisor (M): ");
+        int M = in.nextInt(); // Divisor.
+        in.close();
 
-    printf("Enter Dividend (Q): ");
-    scanf("%u", &Q);
-    printf("Enter Divisor (M): ");
-    scanf("%u", &M);
+        int A = 0; // Partial remainder.
+        int count = 32; // Number of bits.
+        while (count-- > 0) {
+            // Shift the next dividend bit into A.
+            A = (A << 1) | ((Q >>> 31) & 1);
+            Q <<= 1;
 
-    while (N > 0) {
-        // Determine whether to Add or Subtract based on sign of A before shifting
-        int a_neg = (A >> 31) & 1U;
+            // Subtract or add the divisor based on the sign of A.
+            if (A >= 0) {
+                A -= M; // A = A - M.
+            } else {
+                A += M; // A = A + M.
+            }
 
-        // Shift Left [A, Q]
-        A = (A << 1) | ((Q >> 31) & 1U);
-        Q = Q << 1;
-
-        if (a_neg) {
-            A = A + M;
-        } else {
-            A = A - M;
+            // A >= 0 means Q0 is 1; otherwise Q0 is 0.
+            if (A >= 0) {
+                Q |= 1;
+            } else {
+                Q &= ~1;
+            }
         }
 
-        // Set Q0 based on sign of current A
-        if ((A >> 31) & 1U) {
-            Q &= ~1U; // Q0 = 0
-        } else {
-            Q |= 1U;  // Q0 = 1
+        if (A < 0) {
+            A += M; // Final correction if A is negative.
         }
-        N--;
+        System.out.println("Quotient (Q): " + Q);
+        System.out.println("Remainder (A): " + A);
     }
-
-    // Final correction if remainder is negative
-    if ((A >> 31) & 1U) {
-        A = A + M;
-    }
-
-    printf("Quotient (Q): %u\n", Q);
-    printf("Remainder (A): %u\n", A);
-    return 0;
 }
 ```
 
@@ -521,22 +517,23 @@ Where:
 ### Code ([`AmdahlLaw.java`](Week%206/AmdahlLaw.java))
 ```java
 public class AmdahlLaw {
-    public static double speedup(double P, int N) {
-        return 1.0 / ((1.0 - P) + (P / N));
+    // Speedup = 1 / (serial part + parallel part / processors).
+    public static double speedup(double parallelFraction, int processors) {
+        return 1.0 / ((1.0 - parallelFraction) + parallelFraction / processors);
     }
 
     public static void main(String[] args) {
         double[] parallelFractions = {0.5, 0.75, 0.9, 0.95, 0.99};
-        int[] processors = {1, 4, 9, 16};
+        int[] processors = {1, 4, 9, 16}; // Same values used by the notebook.
 
-        for (double P : parallelFractions) {
-            double maxSpeedup = 1.0 / (1.0 - P);
-            System.out.printf("%nParallel fraction P = %.2f, Max Speedup = %.4f%n", P, maxSpeedup);
-
-            for (int N : processors) {
-                double S = speedup(P, N);
-                double E = S / N;
-                System.out.printf("Processors: %2d | Speedup: %.4f | Efficiency: %.4f%n", N, S, E);
+        System.out.println("Amdahl's Law (plotting omitted)");
+        for (double fraction : parallelFractions) {
+            System.out.printf("%nParallel fraction P = %.2f, maximum speedup = %.4f%n",
+                    fraction, 1.0 / (1.0 - fraction));
+            for (int processorCount : processors) {
+                double speedup = speedup(fraction, processorCount);
+                System.out.printf("Processors: %d, Speedup: %.4f, Efficiency: %.4f%n",
+                        processorCount, speedup, speedup / processorCount);
             }
         }
     }
@@ -557,63 +554,78 @@ Given reference string: `7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0
 
 ### Code ([`PageReplacement.java`](Week%207/PageReplacement.java))
 ```java
-import java.util.Arrays;
-
 public class PageReplacement {
-    static final int[] REF = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1};
-    static final int FRAMES = 3;
+    // Reference string and number of available page frames.
+    static final int[] REFERENCES = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3,
+            0, 3, 2, 1, 2, 0, 1, 7, 0, 1};
+    static final int FRAME_COUNT = 3;
 
-    public static void fifo() {
+    static void fifo() {
         int[] frames = {-1, -1, -1};
-        int ptr = 0, hits = 0, faults = 0;
-
-        for (int page : REF) {
-            if (contains(frames, page)) {
+        int pointer = 0, hits = 0, faults = 0;
+        for (int i = 0; i < REFERENCES.length; i++) {
+            boolean hit = contains(frames, REFERENCES[i]); // Page already loaded?
+            if (hit) {
                 hits++;
             } else {
-                frames[ptr] = page;
-                ptr = (ptr + 1) % FRAMES; // Circular FIFO replacement
+                frames[pointer] = REFERENCES[i];
+                pointer = (pointer + 1) % FRAME_COUNT;
                 faults++;
             }
+            System.out.printf("%d %s%n", i, hit ? "H" : "F");
         }
-        System.out.printf("FIFO: Faults = %d, Hits = %d, Fault/Hit Ratio = %.2f%n",
-                faults, hits, (double) faults / hits);
+        printTotals("FIFO", faults, hits);
     }
 
-    public static void lru() {
+    static void lru() {
         int[] frames = {-1, -1, -1};
         int[] lastUsed = {-1, -1, -1};
         int hits = 0, faults = 0;
-
-        for (int i = 0; i < REF.length; i++) {
-            int page = REF[i];
-            int idx = indexOf(frames, page);
-            if (idx != -1) {
-                lastUsed[idx] = i; // Update timestamp
+        for (int i = 0; i < REFERENCES.length; i++) {
+            int page = REFERENCES[i];
+            int index = indexOf(frames, page);
+            boolean hit = index >= 0;
+            if (hit) {
+                lastUsed[index] = i;
                 hits++;
             } else {
-                // Find frame with minimum (oldest) lastUsed index
-                int victim = 0;
-                for (int j = 1; j < FRAMES; j++) {
-                    if (lastUsed[j] < lastUsed[victim]) victim = j;
-                }
-                frames[victim] = page;
-                lastUsed[victim] = i;
+                // Replace the page whose last-use position is smallest.
+                index = indexOf(lastUsed, minimum(lastUsed));
+                frames[index] = page;
+                lastUsed[index] = i;
                 faults++;
             }
+            System.out.printf("%d %s%n", i, hit ? "H" : "F");
         }
-        System.out.printf("LRU: Faults = %d, Hits = %d, Fault/Hit Ratio = %.2f%n",
-                faults, hits, (double) faults / hits);
+        printTotals("LRU", faults, hits);
     }
 
-    static boolean contains(int[] arr, int val) { return indexOf(arr, val) != -1; }
-    static int indexOf(int[] arr, int val) {
-        for (int i = 0; i < arr.length; i++) if (arr[i] == val) return i;
+    static boolean contains(int[] values, int target) {
+        return indexOf(values, target) >= 0;
+    }
+
+    static int indexOf(int[] values, int target) {
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] == target) return i;
+        }
         return -1;
     }
 
+    static int minimum(int[] values) {
+        int result = values[0];
+        for (int value : values) result = Math.min(result, value);
+        return result;
+    }
+
+    static void printTotals(String policy, int faults, int hits) {
+        System.out.printf("%n%s: Faults = %d, Hits = %d, Fault/Hit ratio = %.2f%n",
+                policy, faults, hits, (double) faults / hits);
+    }
+
     public static void main(String[] args) {
+        System.out.println("FIFO Page Replacement");
         fifo();
+        System.out.println("\nLRU Page Replacement");
         lru();
     }
 }
@@ -636,42 +648,61 @@ For every Main Memory Block Index ($BI$):
 - $\text{Cache Index } (CI) = BI \pmod{\text{No. of Lines}}$
 - $\text{Tag Index } (TI) = \lfloor BI / \text{No. of Lines} \rfloor$
 
-### Code ([`directMapping.c`](Week%208/directMapping.c))
-```c
-#include <stdio.h>
-#include <math.h>
+### Code ([`DirectMapping.java`](Week%208/DirectMapping.java))
 
-void printBinary(int n, int bits) {
-    for (int i = bits - 1; i >= 0; i--) {
-        printf("%d", (n >> i) & 1);
+```java
+import java.util.Scanner;
+
+public class DirectMapping {
+    // Print a number using exactly width bits.
+    static String binary(int value, int width) {
+        if (width == 0) {
+            return "-";
+        }
+        return String.format("%" + width + "s", Integer.toBinaryString(value))
+                .replace(' ', '0');
     }
-}
 
-int main() {
-    int mm_size, cm_size, block_size;
-    printf("Enter Main Memory, Cache, and Block size (bytes): ");
-    scanf("%d %d %d", &mm_size, &cm_size, &block_size);
-
-    int noOfBlocks = mm_size / block_size;
-    int noOfLines  = cm_size / block_size;
-
-    int bi_bits = (int)log2(noOfBlocks);
-    int ci_bits = (int)log2(noOfLines);
-    int ti_bits = bi_bits - ci_bits;
-
-    printf("\nBI Bits: %d | CI Bits: %d | TI Bits: %d\n", bi_bits, ci_bits, ti_bits);
-    printf("| Block Index (BI) | Cache Index (CI) | Tag Index (TI) |\n");
-
-    for (int bi = 0; bi < noOfBlocks; bi++) {
-        int ci = bi % noOfLines;
-        int ti = bi / noOfLines;
-
-        printf("| "); printBinary(bi, bi_bits);
-        printf(" | "); printBinary(ci, ci_bits);
-        printf(" | "); printBinary(ti, ti_bits);
-        printf(" |\n");
+    static int log2(int value) {
+        // Direct mapping is simplest when counts are powers of two.
+        if (value <= 0 || (value & (value - 1)) != 0) {
+            throw new IllegalArgumentException("Memory and cache block counts must be powers of two.");
+        }
+        return Integer.numberOfTrailingZeros(value);
     }
-    return 0;
+
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        System.out.print("Enter the size of main memory in bytes: ");
+        int mainMemory = in.nextInt();
+        System.out.print("Enter the size of cache memory in bytes: ");
+        int cacheMemory = in.nextInt();
+        System.out.print("Enter the block size in bytes: ");
+        int blockSize = in.nextInt();
+        in.close();
+
+        int blocks = mainMemory / blockSize; // Main-memory block count.
+        int lines = cacheMemory / blockSize; // Cache-line count.
+        int biBits = log2(blocks);
+        int ciBits = log2(lines);
+        int tagBits = biBits - ciBits;
+        if (tagBits < 0) {
+            throw new IllegalArgumentException("Cache cannot contain more lines than main memory blocks.");
+        }
+
+        System.out.println("\nNo. of blocks in main memory: " + blocks);
+        System.out.println("No. of Lines in cache memory: " + lines);
+        System.out.printf("Bit Widths -> BI: %d bits | CI: %d bits | TI: %d bits%n%n",
+                biBits, ciBits, tagBits);
+        System.out.println("| Block Index (BI) | Cache Index (CI) | Tag Index (TI) |");
+        System.out.println("|------------------|------------------|----------------|");
+        for (int block = 0; block < blocks; block++) {
+            int cacheLine = block % lines; // BI modulo number of lines.
+            int tag = block / lines; // Remaining upper bits.
+            System.out.printf("| %-16s | %-16s | %-14s |%n",
+                    binary(block, biBits), binary(cacheLine, ciBits), binary(tag, tagBits));
+        }
+    }
 }
 ```
 
@@ -703,48 +734,114 @@ A standard 5-stage RISC processor pipeline:
 
 ### Code ([`pipelining.java`](Week%2010/pipelining.java))
 ```java
+import java.util.Scanner;
+
 public class pipelining {
     public static void main(String[] args) {
-        int n = 3; // 3 instructions
-        int k = 5; // 5 pipeline stages (IF, ID, EX, MEM, WB)
-        int totalStalls = 2;
+        Scanner scanner = new Scanner(System.in);
 
-        int nonPipelinedCycles  = n * k;
-        int idealPipelinedCycles = k + (n - 1);
+        // 1. Take User Input
+        System.out.print("Number of Instructions (n) = ");
+        int n = scanner.nextInt();
+
+        System.out.print("Pipeline Stages (k) = ");
+        int k = scanner.nextInt();
+
+        // 2. Define the sample instructions (hardcoded for simple simulation)
+        String i1 = "ADD R1,R2,R3";
+        String i2 = "SUB R4,R1,R5";
+        String i3 = "AND R6,R7,R8";
+
+        System.out.println("\n5-STAGE PIPELINE SIMULATION\n");
+        System.out.printf("%-7s %-15s %-15s %-15s %-15s %-15s%n", "Cycle", "IF", "ID", "EX", "MEM", "WB");
+
+        // 3. Print Cycle-by-Cycle Table
+        for (int cycle = 1; cycle <= 10; cycle++) {
+            String ifStage = "--", idStage = "--", exStage = "--", memStage = "--", wbStage = "--";
+
+            switch (cycle) {
+                case 1: ifStage = i1; break;
+                case 2: ifStage = i2; idStage = i1; break;
+                case 3: ifStage = i3; idStage = i2; exStage = i1; break;
+                case 4: ifStage = i3; idStage = i2; exStage = "STALL"; memStage = i1; break;
+                case 5: ifStage = i3; idStage = i2; exStage = "STALL"; memStage = "STALL"; wbStage = i1; break;
+                case 6: idStage = i3; exStage = i2; memStage = "STALL"; wbStage = "STALL"; break;
+                case 7: exStage = i3; memStage = i2; wbStage = "STALL"; break;
+                case 8: memStage = i3; wbStage = i2; break;
+                case 9: wbStage = i3; break;
+                case 10: break;
+            }
+
+            System.out.printf("%-7d %-15s %-15s %-15s %-15s %-15s%n", cycle, ifStage, idStage, exStage, memStage, wbStage);
+        }
+
+        // 4. Calculations (Lab Manual Formulas)
+        int totalStalls = 2;
+        int nonPipelinedCycles = n * k;                      // T_np = n * k
+        int idealPipelinedCycles = k + (n - 1);             // T_p = k + (n - 1)
         int actualPipelinedCycles = idealPipelinedCycles + totalStalls;
 
-        float idealSpeedup   = (float) nonPipelinedCycles / idealPipelinedCycles;
+        // Theoretical (Ideal) Metrics
+        float idealSpeedup = (float) nonPipelinedCycles / idealPipelinedCycles;
         float idealEfficiency = idealSpeedup / k;
 
-        float actualSpeedup   = (float) nonPipelinedCycles / actualPipelinedCycles;
+        // Actual (With Hazard Stalls) Metrics
+        float actualSpeedup = (float) nonPipelinedCycles / actualPipelinedCycles;
         float actualEfficiency = actualSpeedup / k;
 
-        System.out.println("Non-pipelined cycles: " + nonPipelinedCycles);
-        System.out.println("Ideal pipelined cycles: " + idealPipelinedCycles);
-        System.out.printf("Ideal Speedup: %.2f | Efficiency: %.1f%%%n", idealSpeedup, idealEfficiency * 100);
+        // 5. Display Summary Results
+        System.out.println("\n--- SIMULATION SUMMARY ---");
+        System.out.println("Total Instructions: " + n);
+        System.out.println("Total Stall Cycles: " + totalStalls);
+        System.out.println("Ideal Cycles: " + idealPipelinedCycles);
+        System.out.println("Extra Cycles: " + totalStalls);
 
-        System.out.println("Actual pipelined cycles (with stalls): " + actualPipelinedCycles);
-        System.out.printf("Actual Speedup: %.2f | Efficiency: %.1f%%%n", actualSpeedup, actualEfficiency * 100);
+        System.out.println("\n--- PERFORMANCE METRICS (IDEAL) ---");
+        System.out.println("Non-Pipelined Cycles = " + nonPipelinedCycles);
+        System.out.println("Pipelined Cycles = " + idealPipelinedCycles);
+        System.out.printf("Speedup = %.2f%n", idealSpeedup);
+        System.out.printf("Efficiency = %.2f (%.1f%%)%n", idealEfficiency, idealEfficiency * 100);
+
+        System.out.println("\n--- PERFORMANCE METRICS (ACTUAL WITH STALLS) ---");
+        System.out.println("Actual Pipelined Cycles = " + actualPipelinedCycles);
+        System.out.printf("Actual Speedup = %.2f%n", actualSpeedup);
+        System.out.printf("Actual Efficiency = %.2f (%.1f%%)%n", actualEfficiency, actualEfficiency * 100);
+
+        scanner.close();
     }
 }
 ```
 
 ---
 
-### Quick Cheat-Sheet for Writing in the Exam:
-| Exp | Key Concept | Memory / Register / Logic Trick |
+### Quick Cheat-Sheet for the Exam
+
+#### 8086 Programs
+| Exp | Remember this order | One-line recall |
 |---|---|---|
-| **1.1** | Hello World | `INT 21H` with `AH = 09H`, string ending in `$` |
-| **1.2** | 16-bit Addition | `NUM1 DW 1234H`, `MOV AX, NUM1`, `ADD AX, NUM2` |
-| **2.1 & 2.2**| Block Transfer | `MOV CX, 10`, `CLD`, `REP MOVSW` (`DS:SI` to `ES:DI`) |
-| **3.1** | String Length | `LODSB`, `CMP AL, '$'`, `INC CX` |
-| **3.2** | Compare Strings | `REPE CMPSB`, check `JNE` |
-| **3.3** | Palindrome | `SI = start`, `DI = end`, loop `LEN/2` comparing `[SI]` and `[DI]` |
-| **3.4** | Reverse String | `SI = end`, `DI = start_of_new_buf`, `LOOP` |
-| **4** | Booth's Algorithm | `(Q0, Q_1)`: `10` $\implies A - M$, `01` $\implies A + M$, Arithmetic Right Shift |
-| **5.1** | Restoring Div | Shift Left $[A, Q]$, $A - M$; if $A < 0 \implies Q_0 = 0$ & $A + M$ |
-| **5.2** | Non-Restoring Div | Check sign first: $+ \implies -M$, $- \implies +M$; final fix if $A < 0$ |
-| **6** | Amdahl's Law | $S = 1 / ((1 - P) + P/N)$, $E = S / N$ |
-| **7** | FIFO & LRU | FIFO = circular index; LRU = minimum last-access index |
-| **8** | Direct Mapping | $BI = \log_2(\text{Blocks})$, $CI = BI \pmod{\text{Lines}}$, $TI = BI / \text{Lines}$ |
-| **10** | Pipelining | $T_{np} = n \times k$, $T_p = k + n - 1$, Hazard stall = 2 cycles |
+| **1.1 Hello World** | Set `DS` -> load message -> `AH = 09H` -> `INT 21H` | DOS prints until `$`; exit with `AH = 4CH`. |
+| **1.2 Addition** | Load `NUM1` -> `ADD NUM2` -> store `SUM` | `DW` = 16-bit word; use `AX` for the word result. |
+| **2 Block Transfer** | Set `DS:SI`, `ES:DI`, `CX` -> `CLD` -> `REP MOVSW` | `MOVSW` copies one word; `CX` is the number of words. |
+| **3.1 String Length** | `SI` at start -> clear `CX` -> `LODSB` -> test `$` -> increment `CX` | `CX` counts characters before `$`. |
+| **3.2 Compare Strings** | Set `DS` and `ES` -> set `SI`, `DI`, `CX` -> `REPE CMPSB` | `JNE` means a mismatch was found. |
+| **3.3 Palindrome** | `SI` at start, `DI` at end -> compare -> move inward | Only `LEN / 2` pairs need checking. |
+| **3.4 Reverse String** | `SI` at end, `DI` at output start -> copy backward to forward | Decrease `SI`; increase `DI`. |
+
+#### Algorithms and Performance
+| Exp | Algorithm | Must-remember rule |
+|---|---|---|
+| **4 Booth** | Signed multiplication | `(Q0, Q-1)`: `10` -> `A - M`; `01` -> `A + M`; then arithmetic right shift. |
+| **5.1 Restoring division** | Shift, subtract, restore if negative | Negative `A` -> `Q0 = 0`, then `A = A + M`; otherwise `Q0 = 1`. |
+| **5.2 Non-restoring division** | Add or subtract based on the previous sign | `A >= 0` -> subtract `M`; `A < 0` -> add `M`; correct negative `A` at the end. |
+| **6 Amdahl's Law** | Speedup and efficiency | $S = \frac{1}{(1-P)+P/N}$; maximum speedup $= \frac{1}{1-P}$; $E = S/N$. |
+| **7 FIFO** | Oldest loaded page is replaced | Advance the circular pointer after every page fault. |
+| **7 LRU** | Least recently used page is replaced | Replace the frame with the smallest `lastUsed` value. |
+| **8 Direct mapping** | Main-memory block -> cache line | `CI = BI % lines`; `TI = BI / lines`; `BI bits = CI bits + TI bits`. |
+| **10 Pipelining** | IF -> ID -> EX -> MEM -> WB | $T_{np}=n \times k$; ideal $T_p=k+n-1$; actual time adds stall cycles. |
+
+#### Last-Minute Reminders
+- **8086 string direction:** `CLD` means forward; `STD` would mean backward.
+- **8086 string registers:** source is `DS:SI`; destination is `ES:DI`; repetition count is `CX`.
+- **DOS services:** `AH = 09H` displays a `$`-terminated string; `AH = 4CH` exits.
+- **Division notation:** `Q` starts as the dividend and becomes the quotient; `A` is the partial remainder.
+- **Pipeline metrics:** `Speedup = T_{np}/T_p`; `Efficiency = Speedup/k`.
